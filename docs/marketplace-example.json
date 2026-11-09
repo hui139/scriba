@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "plugins": [
+    {
+      "id": "word-count",
+      "name": "Word Count",
+      "version": "1.0.0",
+      "description": "在状态栏显示字数与字符数",
+      "author": "Scriba Contributors",
+      "license": "MIT",
+      "homepage": "https://github.com/scriba-editor/scriba",
+      "minAppVersion": "0.1.0",
+      "keywords": ["statusbar", "statistics"],
+      "download": "https://github.com/scriba-editor/scriba-plugins/releases/download/word-count-1.0.0/word-count.zip"
+    },
+    {
+      "id": "reading-time",
+      "name": "Reading Time",
+      "version": "1.0.0",
+      "description": "估算当前文档的阅读时长",
+      "author": "Scriba Contributors",
+      "license": "MIT",
+      "minAppVersion": "0.1.0",
+      "keywords": ["statusbar", "writing"],
+      "download": "https://github.com/scriba-editor/scriba-plugins/releases/download/reading-time-1.0.0/reading-time.zip"
+    }
+  ]
+}

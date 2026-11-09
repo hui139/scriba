@@ -1,0 +1,256 @@
+type TranslationVars = Record<string, string | number>
+
+const dictionaries: Record<string, Record<string, string>> = {
+  'en-US': {
+    'menu.about': 'About Scriba',
+    'menu.services': 'Services',
+    'menu.hide': 'Hide Scriba',
+    'menu.hideOthers': 'Hide Others',
+    'menu.unhide': 'Show All',
+    'menu.quit': 'Quit',
+    'menu.closeWindow': 'Close Window',
+    'menu.settings': 'Settings...',
+
+    'menu.file': 'File',
+    'menu.newFile': 'New File',
+    'menu.openFile': 'Open File...',
+    'menu.openFolder': 'Open Folder...',
+    'menu.openRecent': 'Open Recent',
+    'menu.clearRecent': 'Clear Recently Opened',
+    'menu.save': 'Save',
+    'menu.saveAs': 'Save As...',
+    'menu.exportHtml': 'Export as HTML...',
+    'menu.exportPdf': 'Export as PDF...',
+    'menu.exportWord': 'Export as Word...',
+    'menu.exportText': 'Export as Plain Text...',
+    'menu.exportImage': 'Export as Image...',
+    'menu.exportLatex': 'Export as LaTeX...',
+    'menu.exportEpub': 'Export as EPUB...',
+    'menu.exportFolder': 'Export Folder...',
+    'menu.print': 'Print...',
+
+    'menu.edit': 'Edit',
+    'menu.undo': 'Undo',
+    'menu.redo': 'Redo',
+    'menu.cut': 'Cut',
+    'menu.copy': 'Copy',
+    'menu.paste': 'Paste',
+    'menu.selectAll': 'Select All',
+    'menu.find': 'Find',
+    'menu.replace': 'Replace',
+    'menu.palette': 'Command Palette',
+
+    'menu.paragraph': 'Paragraph',
+    'menu.heading1': 'Heading 1',
+    'menu.heading2': 'Heading 2',
+    'menu.heading3': 'Heading 3',
+    'menu.heading4': 'Heading 4',
+    'menu.heading5': 'Heading 5',
+    'menu.heading6': 'Heading 6',
+    'menu.paragraphPlain': 'Paragraph',
+    'menu.promoteHeading': 'Promote Heading',
+    'menu.demoteHeading': 'Demote Heading',
+    'menu.table': 'Table',
+    'menu.codeFence': 'Code Fences',
+    'menu.mathBlock': 'Math Block',
+    'menu.quote': 'Quote',
+    'menu.orderedList': 'Ordered List',
+    'menu.unorderedList': 'Unordered List',
+    'menu.taskList': 'Task List',
+    'menu.indent': 'Increase Indent',
+    'menu.outdent': 'Decrease Indent',
+
+    'menu.insert': 'Insert',
+    'menu.insertImage': 'Image',
+    'menu.insertFootnote': 'Footnote',
+    'menu.insertToc': 'Table of Contents',
+    'menu.insertHr': 'Horizontal Rule',
+    'menu.insertParagraphBefore': 'Paragraph Before',
+    'menu.insertParagraphAfter': 'Paragraph After',
+
+    'menu.format': 'Format',
+    'menu.bold': 'Bold',
+    'menu.italic': 'Italic',
+    'menu.underline': 'Underline',
+    'menu.strike': 'Strikethrough',
+    'menu.highlight': 'Highlight',
+    'menu.superscript': 'Superscript',
+    'menu.subscript': 'Subscript',
+    'menu.inlineCode': 'Inline Code',
+    'menu.link': 'Link',
+
+    'menu.view': 'View',
+    'menu.toggleSidebar': 'Toggle Sidebar',
+    'menu.toggleOutline': 'Show Outline',
+    'menu.focus': 'Focus Mode',
+    'menu.typewriter': 'Typewriter Mode',
+    'menu.sourceMode': 'Source Code Mode',
+    'menu.switchLanguage': 'Switch Language',
+    'menu.resetZoom': 'Actual Size',
+    'menu.zoomIn': 'Zoom In',
+    'menu.zoomOut': 'Zoom Out',
+    'menu.fullscreen': 'Toggle Full Screen',
+    'menu.devtools': 'Toggle Developer Tools',
+
+    'menu.plugins': 'Plugins',
+    'menu.pluginManager': 'Plugin Manager...',
+    'menu.reloadPlugins': 'Reload Plugins',
+    'menu.openPluginsFolder': 'Open Plugins Folder',
+    'menu.openThemesFolder': 'Open Themes Folder',
+
+    'menu.help': 'Help',
+    'menu.website': 'Scriba Website',
+    'menu.reportIssue': 'Report an Issue',
+
+    'dialog.selectPluginFolder': 'Select a plugin folder (must contain manifest.json)',
+    'dialog.markdownFiles': 'Markdown',
+    'dialog.allFiles': 'All Files',
+    'error.invalidManifest': 'manifest.json not found or invalid in the selected folder',
+    'error.pluginInstalled': 'Plugin "{id}" is already installed',
+    'error.builtinUninstall': 'Built-in plugins cannot be uninstalled',
+    'error.pathEscapes': 'Path escapes the allowed workspace',
+    'error.nameEmpty': 'Name cannot be empty',
+    'error.nameInvalidChars': 'Name contains invalid characters',
+    'error.nameInvalid': 'Invalid name',
+    'error.marketplaceInvalidEntry': 'The marketplace entry is missing required fields',
+    'error.marketplaceNoIndex': 'No plugin index is configured. Use the Browse tab to search GitHub, or set an index URL in the marketplace settings.'
+  },
+  'zh-CN': {
+    'menu.about': '关于 Scriba',
+    'menu.services': '服务',
+    'menu.hide': '隐藏 Scriba',
+    'menu.hideOthers': '隐藏其他',
+    'menu.unhide': '全部显示',
+    'menu.quit': '退出',
+    'menu.closeWindow': '关闭窗口',
+    'menu.settings': '设置...',
+
+    'menu.file': '文件',
+    'menu.newFile': '新建文件',
+    'menu.openFile': '打开文件...',
+    'menu.openFolder': '打开文件夹...',
+    'menu.openRecent': '打开最近文件',
+    'menu.clearRecent': '清除最近打开记录',
+    'menu.save': '保存',
+    'menu.saveAs': '另存为...',
+    'menu.exportHtml': '导出为 HTML...',
+    'menu.exportPdf': '导出为 PDF...',
+    'menu.exportWord': '导出为 Word...',
+    'menu.exportText': '导出为纯文本...',
+    'menu.exportImage': '导出为图片...',
+    'menu.exportLatex': '导出为 LaTeX...',
+    'menu.exportEpub': '导出为 EPUB...',
+    'menu.exportFolder': '导出文件夹...',
+    'menu.print': '打印...',
+
+    'menu.edit': '编辑',
+    'menu.undo': '撤销',
+    'menu.redo': '重做',
+    'menu.cut': '剪切',
+    'menu.copy': '复制',
+    'menu.paste': '粘贴',
+    'menu.selectAll': '全选',
+    'menu.find': '查找',
+    'menu.replace': '替换',
+    'menu.palette': '命令面板',
+
+    'menu.paragraph': '段落',
+    'menu.heading1': '一级标题',
+    'menu.heading2': '二级标题',
+    'menu.heading3': '三级标题',
+    'menu.heading4': '四级标题',
+    'menu.heading5': '五级标题',
+    'menu.heading6': '六级标题',
+    'menu.paragraphPlain': '正文',
+    'menu.promoteHeading': '提升标题级别',
+    'menu.demoteHeading': '降低标题级别',
+    'menu.table': '表格',
+    'menu.codeFence': '代码块',
+    'menu.mathBlock': '公式块',
+    'menu.quote': '引用',
+    'menu.orderedList': '有序列表',
+    'menu.unorderedList': '无序列表',
+    'menu.taskList': '任务列表',
+    'menu.indent': '增加缩进',
+    'menu.outdent': '减少缩进',
+
+    'menu.insert': '插入',
+    'menu.insertImage': '图片',
+    'menu.insertFootnote': '脚注',
+    'menu.insertToc': '目录',
+    'menu.insertHr': '分隔线',
+    'menu.insertParagraphBefore': '在上方插入段落',
+    'menu.insertParagraphAfter': '在下方插入段落',
+
+    'menu.format': '格式',
+    'menu.bold': '粗体',
+    'menu.italic': '斜体',
+    'menu.underline': '下划线',
+    'menu.strike': '删除线',
+    'menu.highlight': '高亮',
+    'menu.superscript': '上标',
+    'menu.subscript': '下标',
+    'menu.inlineCode': '行内代码',
+    'menu.link': '链接',
+
+    'menu.view': '视图',
+    'menu.toggleSidebar': '切换侧边栏',
+    'menu.toggleOutline': '显示大纲',
+    'menu.focus': '专注模式',
+    'menu.typewriter': '打字机模式',
+    'menu.sourceMode': '源码模式',
+    'menu.switchLanguage': '切换语言',
+    'menu.resetZoom': '实际大小',
+    'menu.zoomIn': '放大',
+    'menu.zoomOut': '缩小',
+    'menu.fullscreen': '切换全屏',
+    'menu.devtools': '开发者工具',
+
+    'menu.plugins': '插件',
+    'menu.pluginManager': '插件管理器...',
+    'menu.reloadPlugins': '重新加载插件',
+    'menu.openPluginsFolder': '打开插件文件夹',
+    'menu.openThemesFolder': '打开主题文件夹',
+
+    'menu.help': '帮助',
+    'menu.website': 'Scriba 官网',
+    'menu.reportIssue': '报告问题',
+
+    'dialog.selectPluginFolder': '选择插件文件夹（需包含 manifest.json）',
+    'dialog.markdownFiles': 'Markdown 文件',
+    'dialog.allFiles': '所有文件',
+    'error.invalidManifest': '所选文件夹中未找到有效的 manifest.json',
+    'error.pluginInstalled': '插件“{id}”已安装',
+    'error.builtinUninstall': '内置插件无法卸载',
+    'error.pathEscapes': '路径超出了允许的工作区范围',
+    'error.nameEmpty': '名称不能为空',
+    'error.nameInvalidChars': '名称包含非法字符',
+    'error.nameInvalid': '名称无效',
+    'error.marketplaceInvalidEntry': '市场条目缺少必填字段',
+    'error.marketplaceNoIndex': '未配置插件索引。请使用「浏览」标签通过 GitHub 搜索，或在市场设置中填写索引地址。'
+  }
+}
+
+const FALLBACK = 'en-US'
+let currentLanguage = FALLBACK
+
+export function normalizeMainLanguage(id?: string | null): string {
+  return id && id.toLowerCase().startsWith('zh') ? 'zh-CN' : FALLBACK
+}
+
+export function setMainLanguage(id: string): void {
+  currentLanguage = normalizeMainLanguage(id)
+}
+
+export function getMainLanguage(): string {
+  return currentLanguage
+}
+
+export function mt(key: string, vars?: TranslationVars): string {
+  const template = dictionaries[currentLanguage]?.[key] ?? dictionaries[FALLBACK][key]
+  if (template === undefined) return key
+  if (!vars) return template
+  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
+    vars[name] === undefined ? match : String(vars[name])
+  )
+}

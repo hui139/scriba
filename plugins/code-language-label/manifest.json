@@ -1,0 +1,20 @@
+{
+  "id": "code-language-label",
+  "name": "Code Language Label",
+  "version": "1.1.0",
+  "description": "Detects the language of fenced code blocks and shows a small label on each block.",
+  "author": "Scriba",
+  "main": "index.js",
+  "minAppVersion": "0.1.0",
+  "keywords": ["markdown", "code", "language", "syntax", "label"],
+  "i18n": {
+    "zh-CN": {
+      "name": "代码语言标签",
+      "description": "识别围栏代码块的语言，并在每个代码块上显示一个小标签。"
+    },
+    "ja-JP": {
+      "name": "コード言語ラベル",
+      "description": "フェンス付きコードブロックの言語を判定し、各ブロックに小さなラベルを表示します。"
+    }
+  }
+}

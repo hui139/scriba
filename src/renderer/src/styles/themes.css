@@ -1,0 +1,154 @@
+:root {
+  --font-ui: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans', sans-serif;
+  --font-body: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Serif', Georgia, serif;
+  --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+  --editor-font-size: 16px;
+  /* Multiplier applied to every interface font size. Set from Settings > Appearance.
+     1 = the design size; the interface scales around it without touching the document
+     text, which has its own --editor-font-size control. */
+  --ui-scale: 1;
+  --sidebar-width: 260px;
+  --radius: 8px;
+  --transition: 140ms ease;
+  /* Text drawn on top of --accent. Set per theme, because a pale accent needs dark text
+     and a saturated one needs light text. */
+  --on-accent: #ffffff;
+}
+
+:root,
+:root[data-theme='light'] {
+  --bg: #ffffff;
+  --bg-sidebar: #f7f7f8;
+  --bg-elevated: #ffffff;
+  --bg-hover: #ececef;
+  --bg-active: #e4e4e9;
+  --border: #e3e3e8;
+  --text: #1f2328;
+  --text-secondary: #57606a;
+  --text-muted: #8b949e;
+  --accent: #2f6fed;
+  --on-accent: #ffffff;
+  --accent-soft: rgba(47, 111, 237, 0.12);
+  --selection: rgba(47, 111, 237, 0.2);
+  --code-bg: #f2f3f5;
+  --code-text: #b5316b;
+  --quote-border: #d0d7de;
+  --shadow: 0 8px 30px rgba(15, 20, 30, 0.12);
+  --danger: #d1242f;
+  --success: #1a7f37;
+}
+
+:root[data-theme='dark'] {
+  --bg: #1e1e1e;
+  --bg-sidebar: #191919;
+  --bg-elevated: #252526;
+  --bg-hover: #2a2a2b;
+  --bg-active: #333335;
+  --border: #333336;
+  --text: #d6d6d7;
+  --text-secondary: #a3a3a5;
+  --text-muted: #6e6e70;
+  --accent: #6b9bff;
+  --on-accent: #0f1115;
+  --accent-soft: rgba(107, 155, 255, 0.16);
+  --selection: rgba(107, 155, 255, 0.28);
+  --code-bg: #2b2b2c;
+  --code-text: #e6a2c0;
+  --quote-border: #454548;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  --danger: #f85149;
+  --success: #3fb950;
+}
+
+:root[data-theme='solarized-light'] {
+  --bg: #fdf6e3;
+  --bg-sidebar: #f5efdc;
+  --bg-elevated: #fdf6e3;
+  --bg-hover: #eee8d5;
+  --bg-active: #e4ddc8;
+  --border: #e0d8c3;
+  --text: #586e75;
+  --text-secondary: #657b83;
+  --text-muted: #93a1a1;
+  --accent: #1f7ac0;
+  --on-accent: #ffffff;
+  --accent-soft: rgba(31, 122, 192, 0.14);
+  --selection: rgba(38, 139, 210, 0.2);
+  --code-bg: #eee8d5;
+  --code-text: #cb4b16;
+  --quote-border: #d6cfb9;
+  --shadow: 0 8px 30px rgba(88, 110, 117, 0.16);
+  --danger: #dc322f;
+  --success: #859900;
+}
+
+:root[data-theme='nord'] {
+  --bg: #2e3440;
+  --bg-sidebar: #292f3a;
+  --bg-elevated: #3b4252;
+  --bg-hover: #3b4252;
+  --bg-active: #434c5e;
+  --border: #3b4252;
+  --text: #e5e9f0;
+  --text-secondary: #c0c8d6;
+  --text-muted: #7f8b9f;
+  --accent: #88c0d0;
+  --on-accent: #22272f;
+  --accent-soft: rgba(136, 192, 208, 0.16);
+  --selection: rgba(136, 192, 208, 0.26);
+  --code-bg: #3b4252;
+  --code-text: #ebcb8b;
+  --quote-border: #4c566a;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --danger: #bf616a;
+  --success: #a3be8c;
+}
+
+:root[data-theme='violet-night'] {
+  /* Palette lifted from the app artwork: deep indigo sky, lilac accents, pale lavender
+     text. Kept as one coherent hue family (240-270) so the UI reads like the icon. */
+  --bg: #181423;
+  --bg-sidebar: #141020;
+  --bg-elevated: #221c33;
+  --bg-hover: #2a2340;
+  --bg-active: #342b4f;
+  --border: #322a47;
+  --text: #ece6f8;
+  --text-secondary: #b6abcf;
+  --text-muted: #837799;
+  --accent: #b9a8ee;
+  --on-accent: #1a1428;
+  --accent-soft: rgba(185, 168, 238, 0.18);
+  --selection: rgba(185, 168, 238, 0.3);
+  --code-bg: #221c33;
+  --code-text: #f0a9cf;
+  --quote-border: #433a5c;
+  --highlight-bg: rgba(214, 170, 255, 0.3);
+  --shadow: 0 8px 30px rgba(8, 4, 18, 0.55);
+  --danger: #f2708a;
+  --success: #8ad9a8;
+}
+
+:root[data-theme='solarized-dark'] {
+  --bg: #002b36;
+  --bg-sidebar: #00252e;
+  --bg-elevated: #073642;
+  --bg-hover: #0b3c49;
+  --bg-active: #124652;
+  --border: #0e3a46;
+  --text: #93a1a1;
+  --text-secondary: #839496;
+  --text-muted: #657b83;
+  --accent: #3fc0b6;
+  --on-accent: #04202a;
+  --accent-soft: rgba(63, 192, 182, 0.16);
+  --selection: rgba(63, 192, 182, 0.24);
+  --code-bg: #073642;
+  --code-text: #cb4b16;
+  --quote-border: #0e4b57;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --danger: #dc322f;
+  --success: #859900;
+}

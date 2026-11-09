@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+release/
+
+# Python bytecode (scripts/build-icons.py and friends)
+__pycache__/
+*.py[cod]
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Editor and OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local overrides
+*.local
+.env
+.env.*

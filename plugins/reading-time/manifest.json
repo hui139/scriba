@@ -1,0 +1,20 @@
+{
+  "id": "reading-time",
+  "name": "Reading Time",
+  "version": "1.1.0",
+  "description": "Estimates how long the current document takes to read and adds a focus session command.",
+  "author": "Scriba",
+  "main": "index.js",
+  "minAppVersion": "0.1.0",
+  "keywords": ["statusbar", "productivity"],
+  "i18n": {
+    "zh-CN": {
+      "name": "阅读时间",
+      "description": "估算当前文档的阅读时长，并提供专注阅读命令。"
+    },
+    "ja-JP": {
+      "name": "読了時間",
+      "description": "現在の文書を読むのにかかる時間を見積もり、集中セッションのコマンドを追加します。"
+    }
+  }
+}

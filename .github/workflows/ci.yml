@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Typecheck, build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # A failure on one platform should not hide the result on the others, since the
+      # app ships for all three and path handling differs between them.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:compat
+
+      - name: Build
+        run: npm run build
+
+  smoke:
+    name: UI smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Electron needs a set of shared libraries that the bare runner lacks. The package
+      # names for audio/GTK differ between Ubuntu releases, so install what resolves
+      # instead of pinning a list that breaks on the next runner image bump.
+      - name: Install Electron runtime libraries
+        run: |
+          sudo apt-get update
+          for pkg in \
+            xvfb libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 xdg-utils \
+            libatspi2.0-0 libdrm2 libgbm1 libasound2 libasound2t64; do
+            sudo apt-get install -y "$pkg" || echo "skipped $pkg (not available)"
+          done
+
+      - name: Build
+        run: npm run build
+
+      # The smoke test drives the real app through Electron, which needs a display.
+      - name: Smoke test
+        run: xvfb-run --auto-servernum npm run smoke
