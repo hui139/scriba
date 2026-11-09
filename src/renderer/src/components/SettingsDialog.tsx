@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { AppInfo } from '@shared/types'
+import type { AppInfo, UpdateInfo } from '@shared/types'
 import aboutLogo from '../assets/logo.png'
 import { useI18n, useT } from '../i18n'
 import type { ThemeOption } from '../themes'
@@ -156,6 +156,30 @@ export function SettingsDialog({
   const settings = useSettings()
   const toast = useUI((state) => state.toast)
   const [section, setSection] = useState<Section>('appearance')
+
+  // Update checking is manual and read-only. It runs on demand rather than at startup so
+  // an offline launch never waits on the network.
+  const [updateState, setUpdateState] = useState<{ checking: boolean; info: UpdateInfo | null }>(
+    { checking: false, info: null }
+  )
+
+  const runUpdateCheck = async (): Promise<void> => {
+    setUpdateState({ checking: true, info: null })
+    try {
+      const info = await window.api.window.checkUpdate()
+      setUpdateState({ checking: false, info })
+    } catch (error) {
+      setUpdateState({
+        checking: false,
+        info: {
+          available: false,
+          latestVersion: '',
+          currentVersion: appInfo?.version ?? '',
+          error: error instanceof Error ? error.message : String(error)
+        }
+      })
+    }
+  }
 
   useEffect(() => {
     if (!open) return
@@ -455,6 +479,47 @@ export function SettingsDialog({
                   </div>
                   <div className="setting-control about-version">
                     {appInfo ? `v${appInfo.version} · ${appInfo.platform}` : t('common.loading')}
+                  </div>
+                </div>
+
+                <div className="setting-row">
+                  <div className="setting-text">
+                    <div className="setting-title">{t('settings.updates')}</div>
+                    <div className="setting-desc">{t('settings.updatesDesc')}</div>
+                    {updateState.info?.available && (
+                      <div className="pwarn">
+                        {t('settings.updateAvailable', {
+                          version: updateState.info.latestVersion
+                        })}
+                      </div>
+                    )}
+                    {updateState.info && !updateState.info.available && !updateState.info.error && (
+                      <div className="setting-desc">{t('settings.upToDate')}</div>
+                    )}
+                    {updateState.info?.error && (
+                      <div className="setting-desc">{updateState.info.error}</div>
+                    )}
+                  </div>
+                  <div className="setting-control about-actions">
+                    <button
+                      className="btn ghost"
+                      disabled={updateState.checking}
+                      onClick={() => void runUpdateCheck()}
+                    >
+                      {updateState.checking ? t('settings.checking') : t('settings.checkNow')}
+                    </button>
+                    {updateState.info?.available && (
+                      <button
+                        className="btn primary"
+                        onClick={() =>
+                          void window.api.window.openUpdatePage(
+                            updateState.info?.assetUrl ?? updateState.info?.url
+                          )
+                        }
+                      >
+                        {t('settings.download')}
+                      </button>
+                    )}
                   </div>
                 </div>
 

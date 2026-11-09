@@ -5,10 +5,20 @@ directories:
   buildResources: build
   output: release
 files:
-  - out/**/*
+  - out/**/* 
   - plugins/**/*
   - package.json
 asar: true
+
+# Where the built installers are published. A draft release is created first and only
+# published once every platform has finished uploading, so users never see a release
+# that is missing the installer for their OS.
+publish:
+  provider: github
+  owner: hui139
+  repo: scriba
+  releaseType: draft
+
 win:
   icon: build/icon.ico
   target:
@@ -16,19 +26,37 @@ win:
       arch:
         - x64
   artifactName: ${productName}-${version}-win-${arch}.${ext}
+
 nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   shortcutName: Scriba
+  # Differential updates require running the freshly built installer to record a
+  # blockmap. Updates here are a manual download of the new installer, so the blockmap
+  # has no consumer and building it only adds a step that can fail on a headless machine.
+  differentialPackage: false
+
 mac:
   icon: build/icon.png
   target:
-    - dmg
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
   category: public.app-category.productivity
+  # No Apple Developer certificate is configured, so the build is unsigned and macOS
+  # Gatekeeper will warn on first launch (the user can allow it in System Settings).
+  identity: null
+  hardenedRuntime: false
+
 linux:
   icon: build/icon.png
   target:
-    - AppImage
+    - target: AppImage
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
   category: Office

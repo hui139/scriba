@@ -8,6 +8,7 @@ import { buildMenu } from '../menu'
 import { getMainLanguage, normalizeMainLanguage, setMainLanguage } from '../i18n'
 import { writeEpub } from '../export/epub'
 import { exportFolder, suggestedExportName } from '../export/folder'
+import { checkForUpdate, openUpdatePage } from '../update'
 
 const MAX_RECENT = 10
 
@@ -322,6 +323,12 @@ export function registerAppIpc(): void {
   ipcMain.handle(IPC.windowIsMaximized, (e) => {
     return BrowserWindow.fromWebContents(e.sender)?.isMaximized() ?? false
   })
+
+  // Read-only update check: reports the newest GitHub release and a download link. It
+  // never replaces the running binary, so no signing key or updater process is involved.
+  ipcMain.handle(IPC.checkUpdate, async () => checkForUpdate())
+
+  ipcMain.handle(IPC.openUpdatePage, async (_e, url?: string) => openUpdatePage(url))
 
   // The Windows title-bar overlay (minimise/maximise/close) is drawn by the OS, so it
   // cannot read CSS variables: it has to be repainted whenever the theme changes or the

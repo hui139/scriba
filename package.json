@@ -1,6 +1,6 @@
 {
   "name": "scriba",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Scriba - an open-source, plugin-driven Markdown editor",
   "main": "./out/main/index.js",
   "author": "Scriba Contributors",

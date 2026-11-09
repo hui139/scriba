@@ -52,6 +52,8 @@ export const IPC = {
   setSpellcheck: 'app:set-spellcheck',
   spellcheckLanguages: 'app:spellcheck-languages',
   setTitleBarTheme: 'app:set-titlebar-theme',
+  checkUpdate: 'app:check-update',
+  openUpdatePage: 'app:open-update-page',
   showItemInFolder: 'shell:show-item',
   windowMinimize: 'window:minimize',
   windowMaximize: 'window:maximize',

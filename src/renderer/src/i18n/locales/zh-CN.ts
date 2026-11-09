@@ -205,6 +205,13 @@ export const zhCN: LanguageDefinition = {
     'settings.autoSaveDesc':
       '修改后稍等片刻自动保存。从未保存过的新文件仍需使用“另存为”。',
     'settings.aboutDesc': '基于 Electron 与 CodeMirror 构建的插件化 Markdown 编辑器。',
+    'settings.updates': '软件更新',
+    'settings.updatesDesc': '从 GitHub Releases 检查是否有新版本。下载与安装由你手动完成。',
+    'settings.checkNow': '检查更新',
+    'settings.checking': '检查中…',
+    'settings.updateAvailable': '有新版本可用：v{version}',
+    'settings.upToDate': '已是最新版本。',
+    'settings.download': '前往下载',
     'settings.dataFolders': '数据目录',
     'settings.userData': '用户数据',
     'settings.pluginsDir': '插件',

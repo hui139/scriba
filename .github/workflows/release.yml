@@ -1,0 +1,123 @@
+name: Release
+
+# Builds installers for Windows, macOS and Linux and attaches them to a GitHub Release.
+#
+# Each platform is built on its own runner: a macOS dmg can only be produced on macOS,
+# and a Windows installer behaves best on Windows. All three upload into the same draft
+# release, which is published manually after checking the artifacts — that way users
+# never download a release that is still missing one platform's installer.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Allows producing installers without publishing, to test the pipeline.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The renderer bundle and native menu are language-independent, but a broken build
+      # should fail here rather than inside electron-builder with a confusing message.
+      - name: Build application
+        run: npm run build
+
+      - name: Package (Windows)
+        if: matrix.platform == 'win'
+        run: npx electron-builder --win --publish never
+
+      - name: Package (macOS)
+        if: matrix.platform == 'mac'
+        run: npx electron-builder --mac --publish never
+
+      - name: Package (Linux)
+        if: matrix.platform == 'linux'
+        run: npx electron-builder --linux --publish never
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.platform }}
+          # Only the installers, not the unpacked directory or the blockmap files.
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage
+            release/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    # Only publish for real tags; a manual run stops after producing the artifacts.
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all installers
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: installers-*
+          merge-multiple: true
+
+      - name: List collected files
+        run: ls -la artifacts
+
+      # Draft so the release can be reviewed before it becomes the version that
+      # installed copies offer as an update.
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: Scriba ${{ github.ref_name }}
+          generate_release_notes: true
+          files: artifacts/*
+          body: |
+            ## 安装说明 / Installation
+
+            | 系统 | 文件 | 说明 |
+            | --- | --- | --- |
+            | Windows | `Scriba-*-win-x64.exe` | 双击安装 |
+            | macOS | `Scriba-*-mac-*.dmg` | 打开后拖入「应用程序」 |
+            | Linux | `Scriba-*-linux-x64.AppImage` | `chmod +x` 后直接运行 |
+
+            ### 未签名的说明 / About code signing
+
+            这些安装包**没有代码签名**：
+
+            - **Windows**：SmartScreen 会提示「Windows 已保护你的电脑」，点击「更多信息 → 仍要运行」。
+            - **macOS**：Gatekeeper 会提示无法验证开发者，右键点击应用选「打开」，或在「系统设置 → 隐私与安全性」中允许。
+            - **Linux**：AppImage 需要先 `chmod +x`。
+
+            安装包由 GitHub Actions 从本仓库源码构建，可对照 [workflow](.github/workflows/release.yml) 复查。

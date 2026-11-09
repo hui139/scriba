@@ -5,6 +5,30 @@ export interface FileNode {
   children?: FileNode[]
 }
 
+/**
+ * Result of checking GitHub for a newer release.
+ *
+ * The app does not install updates itself: it reports that a newer version exists and
+ * links to the release page, leaving the download and install to the user. That needs no
+ * signing key and no background updater process.
+ */
+export interface UpdateInfo {
+  /** True when the latest published release is newer than the running version. */
+  available: boolean
+  /** Version of the latest release, without a leading `v`. */
+  latestVersion: string
+  /** Version currently running. */
+  currentVersion: string
+  /** Release page to open, when one was found. */
+  url?: string
+  /** Release notes body, plain Markdown/plain text as published. */
+  notes?: string
+  /** Download page for a platform-specific asset, when the release has one. */
+  assetUrl?: string
+  /** Set when the check itself failed (no network, rate limited, no releases yet). */
+  error?: string
+}
+
 export interface FilePayload {
   path: string
   content: string

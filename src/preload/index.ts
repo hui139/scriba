@@ -13,7 +13,8 @@ import type {
   MarketplaceInstallResult,
   PluginSource,
   SearchFileResult,
-  SearchOptions
+  SearchOptions,
+  UpdateInfo
 } from '../shared/types'
 
 const api = {
@@ -149,6 +150,9 @@ const api = {
     setSpellcheck: (on: boolean): Promise<boolean> => ipcRenderer.invoke(IPC.setSpellcheck, on),
     setTitleBarTheme: (colors: { background: string; symbol: string }): void =>
       ipcRenderer.send(IPC.setTitleBarTheme, colors),
+    checkUpdate: (): Promise<UpdateInfo> => ipcRenderer.invoke(IPC.checkUpdate),
+    openUpdatePage: (url?: string): Promise<boolean> =>
+      ipcRenderer.invoke(IPC.openUpdatePage, url),
     spellcheckLanguages: (): Promise<string[]> =>
       ipcRenderer.invoke(IPC.spellcheckLanguages)
   },

@@ -206,6 +206,14 @@ export const enUS: LanguageDefinition = {
       'Save modified files automatically after a short delay. Files that were never saved still need Save As.',
     'settings.aboutDesc':
       'A plugin-driven Markdown editor built with Electron and CodeMirror.',
+    'settings.updates': 'Software updates',
+    'settings.updatesDesc':
+      'Check GitHub Releases for a newer version. Downloading and installing is left to you.',
+    'settings.checkNow': 'Check for updates',
+    'settings.checking': 'Checking…',
+    'settings.updateAvailable': 'A newer version is available: v{version}',
+    'settings.upToDate': 'You are on the latest version.',
+    'settings.download': 'Download',
     'settings.dataFolders': 'Data folders',
     'settings.userData': 'User data',
     'settings.pluginsDir': 'Plugins',

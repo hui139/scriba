@@ -113,7 +113,10 @@ const dictionaries: Record<string, Record<string, string>> = {
     'error.nameInvalidChars': 'Name contains invalid characters',
     'error.nameInvalid': 'Invalid name',
     'error.marketplaceInvalidEntry': 'The marketplace entry is missing required fields',
-    'error.marketplaceNoIndex': 'No plugin index is configured. Use the Browse tab to search GitHub, or set an index URL in the marketplace settings.'
+    'error.marketplaceNoIndex': 'No plugin index is configured. Use the Browse tab to search GitHub, or set an index URL in the marketplace settings.',
+    'update.failed': 'Could not check for updates: {message}',
+    'update.timeout': 'The update check timed out',
+    'update.none': 'No published releases found'
   },
   'zh-CN': {
     'menu.about': '关于 Scriba',
@@ -227,7 +230,10 @@ const dictionaries: Record<string, Record<string, string>> = {
     'error.nameInvalidChars': '名称包含非法字符',
     'error.nameInvalid': '名称无效',
     'error.marketplaceInvalidEntry': '市场条目缺少必填字段',
-    'error.marketplaceNoIndex': '未配置插件索引。请使用「浏览」标签通过 GitHub 搜索，或在市场设置中填写索引地址。'
+    'error.marketplaceNoIndex': '未配置插件索引。请使用「浏览」标签通过 GitHub 搜索，或在市场设置中填写索引地址。',
+    'update.failed': '检查更新失败：{message}',
+    'update.timeout': '检查更新超时',
+    'update.none': '尚未发布任何版本'
   }
 }
 
