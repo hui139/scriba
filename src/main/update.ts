@@ -1,4 +1,6 @@
 import { app, net, shell } from 'electron'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { UpdateInfo } from '../shared/types'
 import { compareVersions } from '../shared/version'
 import { mt } from './i18n'
@@ -84,13 +86,35 @@ async function fetchLatestRelease(): Promise<GithubRelease | null> {
 }
 
 /**
+ * The running application version.
+ *
+ * `app.getVersion()` reads the version from the package.json Electron considers its own,
+ * which is the app's when packaged but the Electron dependency's when the app is loaded
+ * from a build directory. Reading the project's package.json directly keeps the value
+ * correct in both cases, and falls back to `app.getVersion()` if it cannot be read.
+ */
+function currentAppVersion(): string {
+  try {
+    const raw = readFileSync(join(app.getAppPath(), 'package.json'), 'utf8')
+    const parsed = JSON.parse(raw) as { name?: unknown; version?: unknown }
+    // Guard against the Electron package itself being the file we just read.
+    if (parsed.name === 'scriba' && typeof parsed.version === 'string') {
+      return parsed.version
+    }
+  } catch {
+    // Fall through to Electron's answer.
+  }
+  return app.getVersion()
+}
+
+/**
  * Checks for a newer release.
  *
  * Never throws: a failed check reports `available: false` plus an `error` string, because
  * an offline user should not see an error dialog on startup.
  */
 export async function checkForUpdate(): Promise<UpdateInfo> {
-  const currentVersion = app.getVersion()
+  const currentVersion = currentAppVersion()
   const base: UpdateInfo = { available: false, latestVersion: currentVersion, currentVersion }
 
   let release: GithubRelease | null
