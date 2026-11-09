@@ -88,7 +88,9 @@ async function run() {
     await wc.executeJavaScript("!!document.querySelector('.tree, .tree-search-input')")
   )
 
-  // Switch to the search tab by locating it rather than guessing coordinates.
+  // Switch to the search tab. Locate it by position, not by label: the labels follow the
+  // interface language, and matching on text made this test fail on a machine whose
+  // default language was English rather than Chinese.
   const tab = await wc.executeJavaScript(`(function () {
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.sidebar-tab'));
     var boxes = tabs.map(function (t) {
@@ -96,11 +98,13 @@ async function run() {
       return t.textContent.trim() + '|x=' + Math.round(b.x) + ',y=' + Math.round(b.y) +
         ',w=' + Math.round(b.width) + ',h=' + Math.round(b.height);
     });
-    var found = tabs.find(function (t) { return t.textContent.indexOf('\u641c') >= 0; });
+    // The tab order is fixed: files, search, outline, (plugin panels).
+    var found = tabs[1];
     if (!found) return { boxes: boxes, found: false };
     var r = found.getBoundingClientRect();
     return {
       found: true,
+      label: found.textContent.trim(),
       x: Math.round(r.x + r.width / 2),
       y: Math.round(r.y + r.height / 2),
       boxes: boxes
@@ -150,9 +154,10 @@ async function run() {
 
   // --- Shortcut customization ---
   // Switch back to the Files tab: the search panel replaced the file tree there.
+  // Located by index for the same reason as above — labels follow the UI language.
   const filesTab = await wc.executeJavaScript(`(function () {
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.sidebar-tab'));
-    var found = tabs.find(function (t) { return t.textContent.indexOf('\\u6587\\u4ef6') >= 0; });
+    var found = tabs[0];
     if (!found) return null;
     var r = found.getBoundingClientRect();
     return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
@@ -194,16 +199,16 @@ async function run() {
   record('settings opens', settingsOpen)
 
   if (settingsOpen) {
-    // Click the Shortcuts nav item by matching its label text.
-    const nav = await wc.executeJavaScript(`(function () {
-      var items = Array.prototype.slice.call(document.querySelectorAll('.settings-nav-item'));
-      var found = items.find(function (el) {
-        return el.textContent.indexOf('\\u5feb\\u6377\\u952e') >= 0 || /shortcut/i.test(el.textContent);
-      });
-      if (!found) return null;
-      var r = found.getBoundingClientRect();
+    // Nav items are in a fixed order: appearance, editor, shortcuts, workspace, about.
+    // Selecting by index keeps the test independent of the interface language.
+    const navAt = (index) => `(function () {
+      var el = document.querySelectorAll('.settings-nav-item')[${index}];
+      if (!el) return null;
+      var r = el.getBoundingClientRect();
       return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
-    })()`)
+    })()`
+
+    const nav = await wc.executeJavaScript(navAt(2))
     if (nav) {
       await clickAt(wc, nav.x, nav.y)
       await wait(500)
@@ -214,15 +219,7 @@ async function run() {
 
     // The About page must no longer repeat a static shortcut list; shortcuts live
     // only in their own section now.
-    const aboutNav = await wc.executeJavaScript(`(function () {
-      var items = Array.prototype.slice.call(document.querySelectorAll('.settings-nav-item'));
-      var found = items.find(function (el) {
-        return el.textContent.indexOf('\\u5173\\u4e8e') >= 0 || /about/i.test(el.textContent);
-      });
-      if (!found) return null;
-      var r = found.getBoundingClientRect();
-      return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
-    })()`)
+    const aboutNav = await wc.executeJavaScript(navAt(4))
     if (aboutNav) {
       await clickAt(wc, aboutNav.x, aboutNav.y)
       await wait(400)
