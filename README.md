@@ -13,7 +13,9 @@
 [![License](https://img.shields.io/github/license/hui139/scriba)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-4b5563)](#下载)
 
-[English](README.en.md) · [简体中文](README.md) · [文档](#文档) · [插件开发](docs/PLUGIN_API.md) · [贡献指南](CONTRIBUTING.md)
+[English](README.en.md) · [简体中文](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Русский](README.ru.md)
+
+[文档](#文档) · [插件开发](docs/PLUGIN_API.md) · [贡献指南](CONTRIBUTING.md)
 
 </div>
 

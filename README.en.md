@@ -13,7 +13,9 @@ Markdown syntax hides behind the typeset result: the line under the cursor shows
 [![License](https://img.shields.io/github/license/hui139/scriba)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-4b5563)](#download)
 
-[English](README.en.md) · [简体中文](README.md) · [Docs](#documentation) · [Plugin API](docs/PLUGIN_API.en.md) · [Contributing](CONTRIBUTING.md)
+[English](README.en.md) · [简体中文](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Русский](README.ru.md)
+
+[Docs](#documentation) · [Plugin API](docs/PLUGIN_API.en.md) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
