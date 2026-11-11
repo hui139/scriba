@@ -251,6 +251,7 @@ The object passed to `activate(scriba)` contains:
 | --- | --- |
 | `scriba.manifest` | Manifest information for the current plugin |
 | `scriba.editor` | Editor read/write and cursor operations |
+| `scriba.app` | Current document, workspace, theme and interface state |
 | `scriba.commands` | Commands and keybindings |
 | `scriba.ui` | Status bar, sidebar, and toasts |
 | `scriba.markdown` | Custom code block renderers |
@@ -290,9 +291,15 @@ replaceSelection(text: string): void
 insertText(text: string): void
 wrapSelection(before: string, after?: string): void
 getCursor(): { line: number; col: number }
+setCursor(line: number, col?: number): void
+selectRange(from: number, to: number): void
 scrollToLine(line: number): void
 focus(): void
 replaceRange(from: number, to: number, text: string): void
+getLength(): number
+getLineCount(): number
+getLine(line: number): string
+getLineStart(line: number): number
 ```
 
 | Method | Description |
@@ -304,9 +311,18 @@ replaceRange(from: number, to: number, text: string): void
 | `insertText(text)` | Inserts text at the cursor and moves the cursor to the end; focuses the editor |
 | `wrapSelection(before, after?)` | Wraps the selection; `after` defaults to `before`; focuses the editor |
 | `getCursor()` | Returns 1-based `{ line, col }`; returns `{ line: 1, col: 1 }` when there is no document |
+| `setCursor(line, col?)` | Moves the cursor to a 1-based line and column (`col` defaults to 1) and scrolls it into view; out-of-range values are clamped |
+| `selectRange(from, to)` | Selects text between two **0-based character offsets** and scrolls it into view |
 | `scrollToLine(line)` | Moves the cursor to the start of the line, centers it, and focuses the editor; the line number is clamped |
 | `focus()` | Focuses the editor |
 | `replaceRange(from, to, text)` | Replaces text between two **0-based character offsets**; offsets are clamped to the document; keeps the selection mapped; does not focus |
+| `getLength()` | Total document length in characters; `0` when there is no document |
+| `getLineCount()` | Total number of lines; `0` when there is no document |
+| `getLine(line)` | Text of a 1-based line; returns `''` for an out-of-range or non-numeric line instead of throwing |
+| `getLineStart(line)` | 0-based character offset where a 1-based line starts; `0` when out of range |
+
+> Line numbers in `getCursor`, `setCursor`, `getLine` and `getLineStart` are **1-based**;
+> `replaceRange` and `selectRange` take **0-based character offsets**. Do not mix them.
 
 Example: insert today's date at the cursor
 
@@ -328,7 +344,60 @@ if (index >= 0) {
 }
 ```
 
-### 5.3 `scriba.commands`
+### 5.3 `scriba.app`
+
+Read the current editing context and switch theme or sidebar. This group is **read-only information plus a small set of interface actions**: it does not write files, resize the window or change the user's other settings.
+
+```ts
+getDocument(): { path: string | null; name: string; dirty: boolean } | null
+getWorkspaceRoot(): string | null
+getTheme(): string
+setTheme(id: string): boolean
+getSidebarView(): 'files' | 'search' | 'outline' | 'plugins'
+setSidebarView(view: 'files' | 'search' | 'outline' | 'plugins' | null): void
+setSidebarVisible(visible: boolean): void
+```
+
+| Method | Description |
+| --- | --- |
+| `getDocument()` | Info about the open document; `null` on the welcome screen |
+| `getWorkspaceRoot()` | Absolute path of the open workspace folder, or `null` |
+| `getTheme()` | Id of the active theme, e.g. `violet-night` |
+| `setTheme(id)` | Switches to an installed theme (built-in, user or plugin). Returns `false` and leaves the UI untouched for an unknown id |
+| `getSidebarView()` | The sidebar view currently showing |
+| `setSidebarView(view)` | Switches the sidebar view; `null` hides the sidebar |
+| `setSidebarVisible(visible)` | Shows or hides the sidebar |
+
+`getDocument().path` is `null` for a document that has never been saved; `dirty` means the buffer differs from the file on disk.
+
+Example: report the current file only when it has been saved
+
+```js
+scriba.commands.register({
+  id: 'my-plugin.showFile',
+  name: 'Show current file',
+  run: () => {
+    const doc = scriba.app.getDocument()
+    if (!doc) {
+      scriba.ui.showToast('No document open', 'error')
+      return
+    }
+    const where = doc.path ? doc.path : '(unsaved)'
+    scriba.ui.showToast(`${doc.name} — ${where}${doc.dirty ? ' *' : ''}`)
+  }
+})
+```
+
+Example: select a theme the plugin ships
+
+```js
+scriba.themes.register({ id: 'my-theme', name: 'My Theme', css: '/* ... */' })
+if (!scriba.app.setTheme('my-theme')) {
+  scriba.log('theme registration failed')
+}
+```
+
+### 5.4 `scriba.commands`
 
 ```ts
 register({
@@ -342,6 +411,7 @@ register({
 execute(id: string): Promise<void>
 list(): string[]                       // all currently registered command ids
 registerKeybinding({ command, combo }): void
+unregister(id: string): void
 ```
 
 | Method | Description |
@@ -350,6 +420,7 @@ registerKeybinding({ command, combo }): void
 | `execute(id)` | Runs a command; unknown ids log a warning and resolve |
 | `list()` | Returns all registered command ids, including core and other plugins' commands |
 | `registerKeybinding({ command, combo })` | Binds a shortcut to one of this plugin's own commands |
+| `unregister(id)` | Removes one of this plugin's commands and any plugin shortcut bound to it; ids owned by another plugin are refused with a warning |
 
 #### Binding a shortcut
 
@@ -377,7 +448,7 @@ Rules:
 - User-assigned shortcuts for core commands take precedence over plugin bindings; plugin commands themselves are not listed in **Settings → Shortcuts**.
 - If the same command is bound multiple times, the later registration wins.
 
-### 5.4 `scriba.ui`
+### 5.5 `scriba.ui`
 
 ```ts
 addStatusBarItem({
@@ -393,12 +464,17 @@ addSidebarPanel({
 }): void
 
 showToast(message: string, type?: 'info' | 'error' | 'success'): void
+
+removeStatusBarItem(id: string): void
+removeSidebarPanel(id: string): void
 ```
 
 | Method | Description |
 | --- | --- |
 | `addStatusBarItem(item)` | Adds an element to the status bar; items are sorted by `order`; duplicate `id` overwrites |
+| `removeStatusBarItem(id)` | Removes a status bar item this plugin added; ids owned by another plugin are ignored |
 | `addSidebarPanel(panel)` | Adds a panel to the sidebar's **Plugins** view; `render` returns the element to mount; duplicate `id` overwrites |
+| `removeSidebarPanel(id)` | Removes a panel this plugin added; the **Plugins** tab disappears once no panel is left |
 | `showToast(message, type?)` | Shows a toast; the message is prefixed with `[Plugin Name]` |
 
 Plugins create and update status bar and sidebar elements themselves. The sidebar may call `render` multiple times when the panel registry changes; return a cached element to avoid recreating it and losing state.
@@ -450,7 +526,7 @@ module.exports.deactivate = function deactivate() {
 }
 ```
 
-### 5.5 `scriba.markdown`
+### 5.6 `scriba.markdown`
 
 Registers a renderer for a custom code block language. When the cursor is outside the block, the code block is replaced by the rendered result; when the cursor enters the block, the source is shown again.
 
@@ -489,13 +565,14 @@ scriba.markdown.registerCodeBlockRenderer('plantuml', async (code, el) => {
 })
 ```
 
-### 5.6 `scriba.themes`
+### 5.7 `scriba.themes`
 
 ```ts
 register({ id: string, name: string, css: string }): void
+unregister(id: string): void
 ```
 
-Registered themes appear in the theme list. The `css` is injected into the page; scope it with `:root[data-theme="your-id"]` to avoid affecting other themes:
+Registered themes appear in the theme list and can be selected with `scriba.app.setTheme(id)`. The `css` is injected into the page; scope it with `:root[data-theme="your-id"]` to avoid affecting other themes:
 
 ```css
 :root[data-theme="my-theme"] {
@@ -519,7 +596,7 @@ Registered themes appear in the theme list. The `css` is injected into the page;
 
 Duplicate `id` overwrites an existing theme. Plugin themes appear alongside built-in and user themes; the selected theme id is stored in settings.
 
-### 5.7 `scriba.events`
+### 5.8 `scriba.events`
 
 ```ts
 on(event: 'file:open' | 'file:save' | 'doc:change' | 'editor:ready' | 'workspace:change',
@@ -548,7 +625,7 @@ scriba.events.on('doc:change', () => {
 })
 ```
 
-### 5.8 `scriba.i18n`
+### 5.9 `scriba.i18n`
 
 ```ts
 t(key: string, vars?: Record<string, string | number>): string
@@ -591,7 +668,7 @@ scriba.commands.register({
 })
 ```
 
-### 5.9 `scriba.storage`
+### 5.10 `scriba.storage`
 
 Plugin-isolated persistent storage (`localStorage`, with keys prefixed by `scriba-plugin:<plugin-id>:`).
 
@@ -599,13 +676,15 @@ Plugin-isolated persistent storage (`localStorage`, with keys prefixed by `scrib
 get<T>(key: string): T | undefined
 set(key: string, value: unknown): void
 delete(key: string): void
+keys(): string[]
 ```
 
 - Values are serialized with `JSON.stringify` / `JSON.parse`; they must be JSON-serializable.
 - Missing or unparsable values return `undefined`.
 - Storage is isolated per plugin, so the same key in different plugins does not collide.
+- `keys()` lists only this plugin's own keys (without the prefix), useful for cleanup on uninstall or for enumerating saved state.
 
-### 5.10 `scriba.libs`
+### 5.11 `scriba.libs`
 
 Reuse libraries bundled with the app to avoid shipping duplicates:
 
@@ -620,7 +699,7 @@ const mermaid = await scriba.libs.mermaid()
 | `libs.katex` | KaTeX default export; call `renderToString` and other APIs directly |
 | `libs.mermaid()` | Asynchronously returns the Mermaid default export; loaded on first call |
 
-### 5.11 `scriba.log`
+### 5.12 `scriba.log`
 
 Logging with a plugin prefix:
 

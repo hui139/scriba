@@ -35,7 +35,8 @@ Scriba 插件是运行在编辑器渲染进程中的普通 JavaScript。一个�
 - 主题
 - 界面语言与翻译
 - 文件打开、保存、文档变化、编辑器就绪、工作区变化等事件
-- 编辑器读写、隔离存储、KaTeX 与 Mermaid
+- 编辑器读写与光标操作、当前文档与工作区信息、主题与侧栏切换
+- 隔离存储、KaTeX 与 Mermaid
 
 > **安全提示**：插件与应用同权限运行，可以访问 DOM、网络与 `localStorage`。请只安装可信来源的插件。
 
@@ -251,6 +252,7 @@ module.exports.deactivate = function deactivate() {
 | --- | --- |
 | `scriba.manifest` | 当前插件的清单信息 |
 | `scriba.editor` | 编辑器读写与光标操作 |
+| `scriba.app` | 当前文档、工作区、主题与界面状态 |
 | `scriba.commands` | 命令与快捷键 |
 | `scriba.ui` | 状态栏、侧栏、提示 |
 | `scriba.markdown` | 自定义代码块渲染器 |
@@ -290,9 +292,15 @@ replaceSelection(text: string): void
 insertText(text: string): void
 wrapSelection(before: string, after?: string): void
 getCursor(): { line: number; col: number }
+setCursor(line: number, col?: number): void
+selectRange(from: number, to: number): void
 scrollToLine(line: number): void
 focus(): void
 replaceRange(from: number, to: number, text: string): void
+getLength(): number
+getLineCount(): number
+getLine(line: number): string
+getLineStart(line: number): number
 ```
 
 | 方法 | 说明 |
@@ -304,9 +312,18 @@ replaceRange(from: number, to: number, text: string): void
 | `insertText(text)` | 在光标处插入文本，并把光标移到插入内容末尾；会聚焦编辑器 |
 | `wrapSelection(before, after?)` | 在选区两侧包裹文本；`after` 省略时与 `before` 相同；会聚焦编辑器 |
 | `getCursor()` | 返回 1 基的 `{ line, col }`；无文档时返回 `{ line: 1, col: 1 }` |
+| `setCursor(line, col?)` | 把光标移到指定行列（`col` 默认 1）并滚动到可见位置；越界会被限制到有效范围 |
+| `selectRange(from, to)` | 选中两个 **0 基字符偏移** 之间的文本并滚动到可见位置 |
 | `scrollToLine(line)` | 把光标移到指定行行首，居中滚动并聚焦编辑器；行号会被限制在有效范围内 |
 | `focus()` | 聚焦编辑器 |
 | `replaceRange(from, to, text)` | 替换两个 **0 基字符偏移** 之间的文本；偏移会被限制在文档范围内；保持选区映射；不自动聚焦 |
+| `getLength()` | 文档总长度（字符数）；无文档时返回 `0` |
+| `getLineCount()` | 文档总行数；无文档时返回 `0` |
+| `getLine(line)` | 返回指定 1 基行的文本；行号越界或非数字时返回 `''`，不会抛错 |
+| `getLineStart(line)` | 返回指定 1 基行行首的 0 基字符偏移；越界时返回 `0` |
+
+> 行号与列号约定：`getCursor` / `setCursor` / `getLine` / `getLineStart` 都使用 **1 基行号**；
+> `replaceRange` / `selectRange` 使用 **0 基字符偏移**。两者不要混用。
 
 示例：在光标处插入当前日期
 
@@ -328,7 +345,60 @@ if (index >= 0) {
 }
 ```
 
-### 5.3 `scriba.commands`
+### 5.3 `scriba.app`
+
+读取当前编辑上下文，并切换主题与侧栏。这一组是**只读信息 + 有限的界面动作**：不写文件、不改窗口大小、不改用户的其他设置。
+
+```ts
+getDocument(): { path: string | null; name: string; dirty: boolean } | null
+getWorkspaceRoot(): string | null
+getTheme(): string
+setTheme(id: string): boolean
+getSidebarView(): 'files' | 'search' | 'outline' | 'plugins'
+setSidebarView(view: 'files' | 'search' | 'outline' | 'plugins' | null): void
+setSidebarVisible(visible: boolean): void
+```
+
+| 方法 | 说明 |
+| --- | --- |
+| `getDocument()` | 当前文档信息；欢迎页（无打开文档）时返回 `null` |
+| `getWorkspaceRoot()` | 已打开工作区文件夹的绝对路径；未打开时为 `null` |
+| `getTheme()` | 当前主题 id，如 `violet-night` |
+| `setTheme(id)` | 切换到已安装的主题（内置、用户或插件）。id 不存在时返回 `false` 且不改动界面 |
+| `getSidebarView()` | 当前侧栏视图 |
+| `setSidebarView(view)` | 切换到某个侧栏视图；传 `null` 等同隐藏侧栏 |
+| `setSidebarVisible(visible)` | 显示或隐藏侧栏 |
+
+`getDocument()` 返回的 `path` 在从未保存的文档上为 `null`；`dirty` 表示缓冲区与磁盘内容不同。
+
+示例：只在有文件路径时才统计同目录下的其他文件
+
+```js
+scriba.commands.register({
+  id: 'my-plugin.showFile',
+  name: '显示当前文件',
+  run: () => {
+    const doc = scriba.app.getDocument()
+    if (!doc) {
+      scriba.ui.showToast('没有打开的文档', 'error')
+      return
+    }
+    const where = doc.path ? doc.path : '（未保存）'
+    scriba.ui.showToast(`${doc.name} — ${where}${doc.dirty ? ' *' : ''}`)
+  }
+})
+```
+
+示例：让插件自带主题被选中
+
+```js
+scriba.themes.register({ id: 'my-theme', name: 'My Theme', css: '/* ... */' })
+if (!scriba.app.setTheme('my-theme')) {
+  scriba.log('主题注册失败')
+}
+```
+
+### 5.4 `scriba.commands`
 
 ```ts
 register({
@@ -342,6 +412,7 @@ register({
 execute(id: string): Promise<void>
 list(): string[]                       // 当前已注册的所有命令 id
 registerKeybinding({ command, combo }): void
+unregister(id: string): void
 ```
 
 | 方法 | 说明 |
@@ -350,6 +421,7 @@ registerKeybinding({ command, combo }): void
 | `execute(id)` | 执行命令；未知命令会输出警告并返回已解决的 Promise |
 | `list()` | 返回当前所有已注册命令的 `id`（包括其他插件与核心命令） |
 | `registerKeybinding({ command, combo })` | 为本插件自己的命令绑定快捷键 |
+| `unregister(id)` | 注销本插件自己的命令，并移除绑定到它的插件快捷键；不属于本插件的 id 会被拒绝并输出警告 |
 
 #### 为命令绑定快捷键
 
@@ -377,7 +449,7 @@ scriba.commands.registerKeybinding({
 - 用户为内置命令设置的快捷键优先于插件绑定；插件命令本身不会出现在「设置 → 快捷键」列表中。
 - 同一命令多次注册快捷键时，后一次生效。
 
-### 5.4 `scriba.ui`
+### 5.5 `scriba.ui`
 
 ```ts
 addStatusBarItem({
@@ -393,12 +465,17 @@ addSidebarPanel({
 }): void
 
 showToast(message: string, type?: 'info' | 'error' | 'success'): void
+
+removeStatusBarItem(id: string): void
+removeSidebarPanel(id: string): void
 ```
 
 | 方法 | 说明 |
 | --- | --- |
 | `addStatusBarItem(item)` | 在状态栏添加元素；按 `order` 升序排列；相同 `id` 会覆盖 |
+| `removeStatusBarItem(id)` | 移除本插件添加的状态栏项；不属于本插件的 id 会被忽略 |
 | `addSidebarPanel(panel)` | 在侧栏「插件」视图添加面板；`render` 返回要挂载的元素；相同 `id` 会覆盖 |
+| `removeSidebarPanel(id)` | 移除本插件添加的侧栏面板；面板全部移除后「插件」标签会自动隐藏 |
 | `showToast(message, type?)` | 显示提示，消息会自动加上 `[插件名]` 前缀 |
 
 状态栏元素与侧栏面板元素由插件自行创建并更新。侧栏的 `render` 可能在面板注册表更新时被多次调用；建议返回同一个缓存元素，避免重复创建导致状态丢失。
@@ -450,7 +527,7 @@ module.exports.deactivate = function deactivate() {
 }
 ```
 
-### 5.5 `scriba.markdown`
+### 5.6 `scriba.markdown`
 
 为自定义代码块语言注册渲染器。光标不在代码块内时，代码块会被替换为渲染结果；光标进入代码块时恢复源码。
 
@@ -489,13 +566,14 @@ scriba.markdown.registerCodeBlockRenderer('plantuml', async (code, el) => {
 })
 ```
 
-### 5.6 `scriba.themes`
+### 5.7 `scriba.themes`
 
 ```ts
 register({ id: string, name: string, css: string }): void
+unregister(id: string): void
 ```
 
-注册的主题会出现在主题列表中。`css` 会被注入到页面中，请使用 `:root[data-theme="your-id"]` 作用域，避免影响其他主题：
+注册的主题会出现在主题列表中，可以用 `scriba.app.setTheme(id)` 切换。`css` 会被注入到页面中，请使用 `:root[data-theme="your-id"]` 作用域，避免影响其他主题：
 
 ```css
 :root[data-theme="my-theme"] {
@@ -519,7 +597,7 @@ register({ id: string, name: string, css: string }): void
 
 相同 `id` 会覆盖已有主题。插件主题与内置主题、用户主题一起显示；用户选择的主题 id 会保存在设置中。
 
-### 5.7 `scriba.events`
+### 5.8 `scriba.events`
 
 ```ts
 on(event: 'file:open' | 'file:save' | 'doc:change' | 'editor:ready' | 'workspace:change',
@@ -548,7 +626,7 @@ scriba.events.on('doc:change', () => {
 })
 ```
 
-### 5.8 `scriba.i18n`
+### 5.9 `scriba.i18n`
 
 ```ts
 t(key: string, vars?: Record<string, string | number>): string
@@ -591,7 +669,7 @@ scriba.commands.register({
 })
 ```
 
-### 5.9 `scriba.storage`
+### 5.10 `scriba.storage`
 
 按插件隔离的持久化存储（`localStorage`，键会加上 `scriba-plugin:<plugin-id>:` 前缀）。
 
@@ -599,13 +677,15 @@ scriba.commands.register({
 get<T>(key: string): T | undefined
 set(key: string, value: unknown): void
 delete(key: string): void
+keys(): string[]
 ```
 
 - 值使用 `JSON.stringify` / `JSON.parse` 序列化，必须可 JSON 序列化。
 - 读取不存在或解析失败时返回 `undefined`。
 - 存储按插件隔离，不同插件使用相同 key 不会冲突。
+- `keys()` 只返回本插件自己的键名（不含前缀），可用于卸载前清理或枚举历史数据。
 
-### 5.10 `scriba.libs`
+### 5.11 `scriba.libs`
 
 复用应用内置的第三方库，避免插件重复打包：
 
@@ -620,7 +700,7 @@ const mermaid = await scriba.libs.mermaid()
 | `libs.katex` | KaTeX 默认导出，可直接调用 `renderToString` 等 API |
 | `libs.mermaid()` | 异步返回 Mermaid 默认导出；首次调用时才加载 |
 
-### 5.11 `scriba.log`
+### 5.12 `scriba.log`
 
 带插件前缀的日志输出：
 

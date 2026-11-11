@@ -4,6 +4,9 @@ import type { InstalledPlugin, PluginSource } from '@shared/types'
 import { getCurrentView } from '../editor/viewRef'
 import { goToLine } from '../editor/navigate'
 import { useUI } from '../store/ui'
+import { useSettings } from '../store/settings'
+import { useWorkspace } from '../store/workspace'
+import { builtinThemes } from '../themes'
 import {
   clearPluginContributions,
   codeRendererMap,
@@ -14,9 +17,14 @@ import {
   registerCodeRenderer,
   registerCommand,
   registerPluginKeybinding,
+  removeCommandOfPlugin,
+  removePanelOfPlugin,
   removePluginContributions,
+  removeStatusItemOfPlugin,
+  removeThemeOfPlugin,
   statusItemMap,
-  themeMap
+  themeMap,
+  useRegistry
 } from './registry'
 import { useI18n, t } from '../i18n'
 import type { EditorApi, PluginAPI, PluginEvent, ThemeContribution } from './types'
@@ -112,6 +120,44 @@ function createEditorApi(): EditorApi {
       const start = Math.max(0, Math.min(from, length))
       const end = Math.max(start, Math.min(to, length))
       v.dispatch({ changes: { from: start, to: end, insert: text } })
+    },
+    getLength: () => view()?.state.doc.length ?? 0,
+    getLineCount: () => view()?.state.doc.lines ?? 0,
+    getLine: (lineNumber) => {
+      const v = view()
+      if (!v) return ''
+      // CodeMirror lines are 1-based; clamp instead of throwing so a plugin does not
+      // crash the host when it guesses a line number.
+      const total = v.state.doc.lines
+      if (!Number.isFinite(lineNumber) || lineNumber < 1 || lineNumber > total) return ''
+      return v.state.doc.line(Math.floor(lineNumber)).text
+    },
+    getLineStart: (lineNumber) => {
+      const v = view()
+      if (!v) return 0
+      const total = v.state.doc.lines
+      if (!Number.isFinite(lineNumber) || lineNumber < 1 || lineNumber > total) return 0
+      return v.state.doc.line(Math.floor(lineNumber)).from
+    },
+    setCursor: (lineNumber, col = 1) => {
+      const v = view()
+      if (!v) return
+      const total = v.state.doc.lines
+      if (!Number.isFinite(lineNumber) || lineNumber < 1) return
+      const line = v.state.doc.line(Math.min(Math.floor(lineNumber), total))
+      const offset = Math.max(0, Math.min((col || 1) - 1, line.length))
+      const pos = line.from + offset
+      v.dispatch({ selection: { anchor: pos }, scrollIntoView: true })
+      v.focus()
+    },
+    selectRange: (from, to) => {
+      const v = view()
+      if (!v) return
+      const length = v.state.doc.length
+      const start = Math.max(0, Math.min(from, length))
+      const end = Math.max(start, Math.min(to, length))
+      v.dispatch({ selection: { anchor: start, head: end }, scrollIntoView: true })
+      v.focus()
     }
   }
 }
@@ -132,6 +178,42 @@ function createApi(source: PluginSource, disposers: Array<() => void>): PluginAP
       keywords: source.manifest.keywords
     },
     editor: createEditorApi(),
+    app: {
+      getDocument: () => {
+        const state = useWorkspace.getState()
+        const doc = state.docs.find((item) => item.id === state.activeId)
+        if (!doc) return null
+        return {
+          path: doc.path,
+          name: doc.name,
+          dirty: doc.content !== doc.savedContent
+        }
+      },
+      getWorkspaceRoot: () => useWorkspace.getState().rootPath,
+      getTheme: () => useSettings.getState().theme,
+      setTheme: (id) => {
+        // Only switch to a theme that exists, so a typo cannot blank out the interface.
+        const known = [
+          ...builtinThemes.map((theme) => theme.id),
+          ...useRegistry.getState().themes.map((theme) => theme.id)
+        ]
+        if (!known.includes(id)) {
+          console.warn(`[scriba] plugin "${pluginId}" tried to switch to unknown theme "${id}"`)
+          return false
+        }
+        useSettings.getState().setTheme(id)
+        return true
+      },
+      getSidebarView: () => useSettings.getState().sidebarView,
+      setSidebarView: (view) => {
+        if (view === null) {
+          useSettings.getState().setSidebarVisible(false)
+          return
+        }
+        useSettings.getState().setSidebarView(view)
+      },
+      setSidebarVisible: (visible) => useSettings.getState().setSidebarVisible(visible)
+    },
     i18n: {
       t: (key, vars) => t(key, vars),
       getLanguage: () => useI18n.getState().language,
@@ -188,6 +270,13 @@ function createApi(source: PluginSource, disposers: Array<() => void>): PluginAP
           return
         }
         registerPluginKeybinding(binding.command, binding.combo, pluginId)
+      },
+      unregister: (id) => {
+        if (!removeCommandOfPlugin(id, pluginId)) {
+          console.warn(
+            `[scriba] plugin "${pluginId}" cannot unregister command "${id}": not found or owned by another plugin`
+          )
+        }
       }
     },
     ui: {
@@ -195,9 +284,15 @@ function createApi(source: PluginSource, disposers: Array<() => void>): PluginAP
         statusItemMap.set(item.id, { ...item, pluginId })
         publishRegistry()
       },
+      removeStatusBarItem: (id) => {
+        removeStatusItemOfPlugin(id, pluginId)
+      },
       addSidebarPanel: (panel) => {
         panelMap.set(panel.id, { ...panel, pluginId })
         publishRegistry()
+      },
+      removeSidebarPanel: (id) => {
+        removePanelOfPlugin(id, pluginId)
       },
       showToast: (message, type = 'info') => {
         useUI.getState().toast(`[${source.manifest.name}] ${message}`, type)
@@ -213,6 +308,9 @@ function createApi(source: PluginSource, disposers: Array<() => void>): PluginAP
       register: (theme: ThemeContribution) => {
         themeMap.set(theme.id, { ...theme, pluginId })
         publishRegistry()
+      },
+      unregister: (id) => {
+        removeThemeOfPlugin(id, pluginId)
       }
     },
     events: {
@@ -240,6 +338,14 @@ function createApi(source: PluginSource, disposers: Array<() => void>): PluginAP
       },
       delete: (key) => {
         localStorage.removeItem(storagePrefix + key)
+      },
+      keys: () => {
+        const result: string[] = []
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith(storagePrefix)) result.push(key.slice(storagePrefix.length))
+        }
+        return result
       }
     },
     libs: {

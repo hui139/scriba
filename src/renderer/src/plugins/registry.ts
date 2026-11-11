@@ -86,6 +86,46 @@ export function commandName(command: Command): string {
   return command.nameKey ? t(command.nameKey) : command.name
 }
 
+/**
+ * Removes one of a plugin's own contributions.
+ *
+ * Ownership is checked by the caller (the runtime), because the registry only needs to
+ * know that the id belongs to the plugin before deleting it. Returning false lets the
+ * caller warn instead of silently doing nothing.
+ */
+export function removeCommandOfPlugin(id: string, pluginId: string): boolean {
+  const command = commandMap.get(id)
+  if (!command || command.pluginId !== pluginId) return false
+  commandMap.delete(id)
+  pluginKeybindingMap.delete(id)
+  publishRegistry()
+  return true
+}
+
+export function removeStatusItemOfPlugin(id: string, pluginId: string): boolean {
+  const item = statusItemMap.get(id)
+  if (!item || item.pluginId !== pluginId) return false
+  statusItemMap.delete(id)
+  publishRegistry()
+  return true
+}
+
+export function removePanelOfPlugin(id: string, pluginId: string): boolean {
+  const panel = panelMap.get(id)
+  if (!panel || panel.pluginId !== pluginId) return false
+  panelMap.delete(id)
+  publishRegistry()
+  return true
+}
+
+export function removeThemeOfPlugin(id: string, pluginId: string): boolean {
+  const theme = themeMap.get(id)
+  if (!theme || theme.pluginId !== pluginId) return false
+  themeMap.delete(id)
+  publishRegistry()
+  return true
+}
+
 export function executeCommand(id: string): Promise<void> {
   const command = commandMap.get(id)
   if (!command) {

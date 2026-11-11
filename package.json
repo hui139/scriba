@@ -29,11 +29,12 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "smoke": "electron scripts/ui-smoke.cjs",
     "test:compat": "node scripts/test-compat.mjs",
-    "test": "npm run test:compat && npm run smoke",
+    "test": "npm run test:compat && npm run test:plugins && npm run smoke",
     "index": "node scripts/build-index.mjs",
     "icons": "python scripts/build-icons.py",
     "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "test:plugins": "node scripts/test-plugin-api.mjs"
   },
   "dependencies": {
     "chokidar": "^3.6.0"

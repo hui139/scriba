@@ -16,6 +16,18 @@ export interface EditorApi {
   focus: () => void
   /** Replace the text between two character offsets, keeping the selection mapped. */
   replaceRange: (from: number, to: number, text: string) => void
+  /** Total length of the document, in characters. */
+  getLength: () => number
+  /** Number of lines in the document. */
+  getLineCount: () => number
+  /** Read one line by its 1-based number; empty string when out of range. */
+  getLine: (line: number) => string
+  /** Document offset of the start of a 1-based line; 0 when out of range. */
+  getLineStart: (line: number) => number
+  /** Move the cursor to a 1-based line and column without selecting. */
+  setCursor: (line: number, col?: number) => void
+  /** Select a character range and scroll it into view. */
+  selectRange: (from: number, to: number) => void
 }
 
 export interface Command {
@@ -91,9 +103,44 @@ export interface I18nApi {
   onChange: (cb: (language: string) => void) => () => void
 }
 
+/** Read-only view of the open document, for plugins that need file context. */
+export interface AppDocumentInfo {
+  /** Absolute path, or null for a document that has never been saved. */
+  path: string | null
+  /** File name including the extension. */
+  name: string
+  /** True when the buffer differs from the saved file. */
+  dirty: boolean
+}
+
+/**
+ * Actions on the surrounding application, deliberately limited to what a plugin can do
+ * without surprising the user: no file writing, no window resizing, no settings mutation
+ * beyond the sidebar and theme.
+ */
+export interface AppApi {
+  /** Currently open document, or null when the welcome screen is showing. */
+  getDocument: () => AppDocumentInfo | null
+  /** Absolute path of the open workspace folder, or null. */
+  getWorkspaceRoot: () => string | null
+  /** Id of the active theme, e.g. `violet-night`. */
+  getTheme: () => string
+  /** Switch to a theme that is already installed (built-in, user or plugin). */
+  setTheme: (id: string) => boolean
+  /** Which sidebar view is showing. */
+  getSidebarView: () => SidebarViewApi
+  /** Show a sidebar view, or hide the whole sidebar with `null`. */
+  setSidebarView: (view: SidebarViewApi | null) => void
+  /** Show or hide the interface sidebar. */
+  setSidebarVisible: (visible: boolean) => void
+}
+
+export type SidebarViewApi = 'files' | 'search' | 'outline' | 'plugins'
+
 export interface PluginAPI {
   manifest: PluginManifestInfo
   editor: EditorApi
+  app: AppApi
   i18n: I18nApi
   commands: {
     register: (command: Omit<Command, 'pluginId'>) => void
@@ -105,10 +152,16 @@ export interface PluginAPI {
      * in Settings → Shortcuts and can be changed by the user like any other.
      */
     registerKeybinding: (binding: PluginKeybinding) => void
+    /** Remove one of this plugin's commands and any shortcut bound to it. */
+    unregister: (id: string) => void
   }
   ui: {
     addStatusBarItem: (item: Omit<StatusBarItem, 'pluginId'>) => void
+    /** Remove a status bar item this plugin added. */
+    removeStatusBarItem: (id: string) => void
     addSidebarPanel: (panel: Omit<SidebarPanel, 'pluginId'>) => void
+    /** Remove a sidebar panel this plugin added. */
+    removeSidebarPanel: (id: string) => void
     showToast: (message: string, type?: 'info' | 'error' | 'success') => void
   }
   markdown: {
@@ -117,6 +170,8 @@ export interface PluginAPI {
   }
   themes: {
     register: (theme: ThemeContribution) => void
+    /** Remove a theme this plugin registered. */
+    unregister: (id: string) => void
   }
   events: {
     on: (event: PluginEvent, cb: (payload?: unknown) => void) => () => void
@@ -125,6 +180,8 @@ export interface PluginAPI {
     get: <T = unknown>(key: string) => T | undefined
     set: (key: string, value: unknown) => void
     delete: (key: string) => void
+    /** All keys this plugin has stored, so it can clean up on uninstall. */
+    keys: () => string[]
   }
   libs: {
     katex: typeof import('katex').default
