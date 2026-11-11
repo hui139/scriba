@@ -21,14 +21,22 @@
 
 ## 下载
 
-从 [Releases](https://github.com/hui139/scriba/releases/latest) 下载对应平台的安装包：
+<div align="center">
+
+[![下载 Scriba](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-Scriba-6d28d9?style=for-the-badge&logo=github)](https://github.com/hui139/scriba/releases/latest)
+
+**[⬇ 前往 Releases 下载最新版本](https://github.com/hui139/scriba/releases/latest)**
+
+</div>
+
+所有版本与历史安装包：[releases](https://github.com/hui139/scriba/releases)
 
 | 平台 | 文件 | 安装方式 |
 | --- | --- | --- |
-| **Windows** 10/11 (x64) | `Scriba-<版本>-win-x64.exe` | 双击运行安装程序 |
-| **macOS** (Apple 芯片) | `Scriba-<版本>-mac-arm64.dmg` | 打开后把 Scriba 拖入「应用程序」 |
-| **macOS** (Intel) | `Scriba-<版本>-mac-x64.dmg` | 同上 |
-| **Linux** (x64) | `Scriba-<版本>-linux-x86_64.AppImage` | `chmod +x` 后直接运行 |
+| **Windows** 10/11 (x64) | [`Scriba-<版本>-win-x64.exe`](https://github.com/hui139/scriba/releases/latest) | 双击运行安装程序 |
+| **macOS** (Apple 芯片) | [`Scriba-<版本>-mac-arm64.dmg`](https://github.com/hui139/scriba/releases/latest) | 打开后把 Scriba 拖入「应用程序」 |
+| **macOS** (Intel) | [`Scriba-<版本>-mac-x64.dmg`](https://github.com/hui139/scriba/releases/latest) | 同上 |
+| **Linux** (x64) | [`Scriba-<版本>-linux-x86_64.AppImage`](https://github.com/hui139/scriba/releases/latest) | `chmod +x` 后直接运行 |
 
 > **安装包未做代码签名**，首次运行时系统会拦截：
 >

@@ -21,14 +21,22 @@ Markdown syntax hides behind the typeset result: the line under the cursor shows
 
 ## Download
 
-Grab the installer for your platform from [Releases](https://github.com/hui139/scriba/releases/latest):
+<div align="center">
+
+[![Download Scriba](https://img.shields.io/badge/DOWNLOAD-Scriba-6d28d9?style=for-the-badge&logo=github)](https://github.com/hui139/scriba/releases/latest)
+
+**[⬇ Get the latest release](https://github.com/hui139/scriba/releases/latest)**
+
+</div>
+
+Every version and past installer: [releases](https://github.com/hui139/scriba/releases)
 
 | Platform | File | Install |
 | --- | --- | --- |
-| **Windows** 10/11 (x64) | `Scriba-<version>-win-x64.exe` | Run the installer |
-| **macOS** (Apple Silicon) | `Scriba-<version>-mac-arm64.dmg` | Open, drag Scriba into Applications |
-| **macOS** (Intel) | `Scriba-<version>-mac-x64.dmg` | Same |
-| **Linux** (x64) | `Scriba-<version>-linux-x86_64.AppImage` | `chmod +x`, then run |
+| **Windows** 10/11 (x64) | [`Scriba-<version>-win-x64.exe`](https://github.com/hui139/scriba/releases/latest) | Run the installer |
+| **macOS** (Apple Silicon) | [`Scriba-<version>-mac-arm64.dmg`](https://github.com/hui139/scriba/releases/latest) | Open, drag Scriba into Applications |
+| **macOS** (Intel) | [`Scriba-<version>-mac-x64.dmg`](https://github.com/hui139/scriba/releases/latest) | Same |
+| **Linux** (x64) | [`Scriba-<version>-linux-x86_64.AppImage`](https://github.com/hui139/scriba/releases/latest) | `chmod +x`, then run |
 
 > **The installers are not code-signed**, so the OS will warn on first launch:
 >
